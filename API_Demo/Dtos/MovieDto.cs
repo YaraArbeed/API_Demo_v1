@@ -1,4 +1,4 @@
-﻿namespace API_Demo.Dtos
+﻿namespace API_Demo_V2.Dtos
 {
     public class MovieDto
     {

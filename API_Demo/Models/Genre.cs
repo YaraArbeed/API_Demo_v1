@@ -1,5 +1,5 @@
 ﻿
-namespace API_Demo.Models
+namespace API_Demo_V2.Models
 {
     public class Genre
     {

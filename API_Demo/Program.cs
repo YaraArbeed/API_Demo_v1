@@ -1,9 +1,10 @@
 
-using API_Demo.Data;
+using API_Demo_V2.Data;
+using API_Demo_V2.Services;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.OpenApi.Models;
 
-namespace API_Demo
+namespace API_Demo_V2
 {
     public class Program  
     {
@@ -18,6 +19,9 @@ namespace API_Demo
             builder.Services.AddControllers();
             // Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
             builder.Services.AddEndpointsApiExplorer();
+            builder.Services.AddTransient<IGenresService, GenresService>();
+            builder.Services.AddTransient<IMoviesService, MoviesService>();
+
             builder.Services.AddCors();
             builder.Services.AddSwaggerGen(options =>
             {

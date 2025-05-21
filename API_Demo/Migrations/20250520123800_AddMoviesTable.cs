@@ -2,7 +2,7 @@
 
 #nullable disable
 
-namespace API_Demo.Migrations
+namespace API_Demo_V2.Migrations
 {
     /// <inheritdoc />
     public partial class AddMoviesTable : Migration
