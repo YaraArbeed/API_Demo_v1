@@ -1,13 +1,15 @@
 ﻿using API_Demo_V2.Data;
 using API_Demo_V2.Services;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 
 namespace API_Demo_V2.Controllers
 {
-    [Route("api/[controller]")]
     [ApiController]
+    [Route("api/[controller]")]
+     [Authorize(Roles ="User")]// (if you're using JWT)
     public class GenresController : ControllerBase
     {
         private readonly IGenresService _genresService;
@@ -16,7 +18,6 @@ namespace API_Demo_V2.Controllers
         {
             _genresService = genresService;
         }
-
         [HttpGet]
         public async Task<IActionResult> GetAllAsync()
         {

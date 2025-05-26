@@ -1,25 +1,30 @@
 ﻿using API_Demo_V2.Data;
 using API_Demo_V2.Services;
+using AutoMapper;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 
 namespace API_Demo_V2.Controllers
 {
-    [Route("api/[controller]")]
+   [Route("api/[controller]")]
     [ApiController]
+    [Authorize]
     public class MoviesController : ControllerBase
     {
         private readonly IMoviesService _moviesService;
         private readonly IGenresService _genresService;
+        private readonly IMapper _mapper;
 
         private new List<string> _allowedExtenstions = new List<string> { ".jpg", ".png" };
         private long _maxAllowedPosterSize = 1048576;// Convert 1MB to byte 
 
-        public MoviesController(IMoviesService moviesService, IGenresService genresService)
+        public MoviesController(IMoviesService moviesService, IGenresService genresService,IMapper mapper)
         {
             _moviesService = moviesService;
             _genresService = genresService;
+            _mapper = mapper;
         }
         [HttpGet]
         public async Task<IActionResult> GetAllAsync()
@@ -73,15 +78,18 @@ namespace API_Demo_V2.Controllers
             using var dataStream = new MemoryStream();
             await dto.Poster.CopyToAsync(dataStream);
 
-            var movie = new Movie
-            {
-                GenreId = dto.GenreId,
-                Title = dto.Title,
-                Poster = dataStream.ToArray(),// Convert Image to Array
-                Rate = dto.Rate,
-                Storeline = dto.Storeline,
-                Year = dto.Year
-            };
+            /* var movie = new Movie
+             {
+                 GenreId = dto.GenreId,
+                 Title = dto.Title,
+                 Poster = dataStream.ToArray(),// Convert Image to Array
+                 Rate = dto.Rate,
+                 Storeline = dto.Storeline,
+                 Year = dto.Year
+             };*/
+
+            var movie = _mapper.Map<Movie>(dto);
+            movie.Poster=dataStream.ToArray();
 
             movie.Poster = dataStream.ToArray();
 

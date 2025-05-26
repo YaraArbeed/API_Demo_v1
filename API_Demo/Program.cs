@@ -1,8 +1,16 @@
-
+﻿
 using API_Demo_V2.Data;
+using API_Demo_V2.Helpers;
+using API_Demo_V2.Models.Identity;
 using API_Demo_V2.Services;
+using API_Demo_V2.Services.Identity;
+using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi.Models;
+using System.Configuration;
+using System.Text;
 
 namespace API_Demo_V2
 {
@@ -16,13 +24,43 @@ namespace API_Demo_V2
             var connectionString = builder.Configuration.GetConnectionString("DefaultConnection");// Read from appsettings.json
             builder.Services.AddDbContext<ApplicationDbContext>(options =>
                 options.UseSqlServer(connectionString));
-            builder.Services.AddControllers();
+            builder.Services.Configure<JWT>(builder.Configuration.GetSection("JWT"));
+
+
+            builder.Services.AddIdentity<ApplicationUser, IdentityRole>().AddEntityFrameworkStores<ApplicationDbContext>().AddDefaultTokenProviders();
+            builder.Services.AddScoped<IAuthService, AuthService>();
             // Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
             builder.Services.AddEndpointsApiExplorer();
             builder.Services.AddTransient<IGenresService, GenresService>();
             builder.Services.AddTransient<IMoviesService, MoviesService>();
+            builder.Services.AddAutoMapper(typeof(Program));// Inject Auto-Mapper
+            
 
             builder.Services.AddCors();
+            builder.Services.AddControllers();
+
+            builder.Services.AddAuthentication(options =>
+            {
+                options.DefaultAuthenticateScheme = JwtBearerDefaults.AuthenticationScheme;
+                options.DefaultChallengeScheme = JwtBearerDefaults.AuthenticationScheme;
+            })
+                           .AddJwtBearer(o =>
+                           {
+                               o.RequireHttpsMetadata = false;
+                               o.SaveToken = false;
+                               o.TokenValidationParameters = new TokenValidationParameters
+                               {
+                                   ValidateIssuerSigningKey = true,
+                                   ValidateIssuer = true,
+                                   ValidateAudience = true,
+                                   ValidateLifetime = true,
+                                   ValidIssuer = builder.Configuration["JWT:Issuer"],
+                                   ValidAudience = builder.Configuration["JWT:Audience"],
+                                   IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(builder.Configuration["JWT:Key"]))
+                               };
+                           });
+
+            //Swagger Documintations and Options
             builder.Services.AddSwaggerGen(options =>
             {
                 options.SwaggerDoc("v1", new OpenApiInfo
@@ -33,8 +71,8 @@ namespace API_Demo_V2
                     TermsOfService = new Uri("https://www.google.com"),
                     Contact = new OpenApiContact
                     {
-                        Name = "Yara ALArbeed",
-                        Email = "yaraxd12@gmail.com",
+                        Name = "DevCreed",
+                        Email = "test@domain.com",
                         Url = new Uri("https://www.google.com")
                     },
                     License = new OpenApiLicense
@@ -57,8 +95,7 @@ namespace API_Demo_V2
                 options.AddSecurityRequirement(new OpenApiSecurityRequirement
     {
         {
-            
-             new OpenApiSecurityScheme// Authorization for each end-point
+            new OpenApiSecurityScheme
             {
                 Reference = new OpenApiReference
                 {
@@ -73,6 +110,8 @@ namespace API_Demo_V2
     });
             });
 
+
+
             var app = builder.Build();
 
             // Configure the HTTP request pipeline.
@@ -83,7 +122,9 @@ namespace API_Demo_V2
             }
 
             app.UseHttpsRedirection();
+            app.UseRouting();
             app.UseCors(c => c.AllowAnyHeader().AllowAnyMethod().AllowAnyOrigin());
+            app.UseAuthentication();
             app.UseAuthorization();
 
 
